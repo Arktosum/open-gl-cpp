@@ -1,51 +1,57 @@
-#include <iostream>
-#include "./glad/glad.h"
-#include <GLFW/glfw3.h>
+#include "window.hpp"
+#include "shader.hpp"
+#include "objects.hpp"
 
-using namespace std;
+Shader shader;
+int sides = 3;
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+void characterCallback(GLFWwindow *window, unsigned int keyCode)
 {
-    glViewport(0, 0, width, height);
+    if (keyCode == GLFW_KEY_A)
+        sides--;
+    if (keyCode == GLFW_KEY_D)
+        sides++;
+}
+
+void mouseButtonPressCallback(GLFWwindow *window, int button, int action, int mod)
+{
+    std::cout << button << std::endl;
+}
+
+void run()
+{
+    shader.use();
+    // Update the window
+    Rectangle rect1(0, 0, 0.2, 0.2);
+    rect1.draw();
+
+    // Rectangle rect2(0.5, 0.5, 0.2, 0.2);
+    // rect.draw();
+
+    Circle circle(0.5, 0.5, 0, 0.5f, sides);
+    circle.draw();
 }
 
 int main()
 {
-    if (!glfwInit())
+    // Create a window
+    Window mainWindow(800, 800, "Main Window");
+    mainWindow.setCharacterCallback(characterCallback);
+    mainWindow.setmouseButtonPressCallback(mouseButtonPressCallback);
+
+    shader.initialize(
+        "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/vertex.glsl",
+        "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/fragment.glsl");
+    // Main loop
+
+    double time = 0.0;
+    while (!mainWindow.shouldClose())
     {
-        cout << "Failed to initialize GLFW" << endl;
-        return -1;
+        time = glfwGetTime();
+        std::cout << time << std::endl;
+        // Update the window
+        mainWindow.update(run);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow *window;
-    window = glfwCreateWindow(800, 600, "Title", NULL, NULL);
-    if (window == NULL)
-    {
-        cout << "Failed to open GLFW window" << endl;
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        cout << "Failed to initialize GLAD" << endl;
-        return -1;
-    }
-
-    glViewport(0, 0, 800, 600);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    while (!glfwWindowShouldClose(window))
-    {
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
     return 0;
 }
