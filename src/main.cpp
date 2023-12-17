@@ -2,8 +2,11 @@
 #include "shader.hpp"
 #include "objects.hpp"
 
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 800
 Shader shader;
 int sides = 3;
+
 
 void characterCallback(GLFWwindow *window, unsigned int keyCode)
 {
@@ -13,23 +16,27 @@ void characterCallback(GLFWwindow *window, unsigned int keyCode)
         sides++;
 }
 
-void mouseButtonPressCallback(GLFWwindow *window, int button, int action, int mod)
+void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
 {
-    std::cout << button << std::endl;
+    float normalizedX = static_cast<float>(xPos) / static_cast<float>(WINDOW_WIDTH);
+    float normalizedY = static_cast<float>(yPos) / static_cast<float>(WINDOW_HEIGHT);
+    // std::cout<<normalizedX<<" "<<normalizedY<<std::endl;
+    GLint mousePosLocation = glGetUniformLocation(shader.shaderProgram, "mousePos");
+    glUniform2f(mousePosLocation, static_cast<float>(normalizedX), static_cast<float>(normalizedY));
 }
 
 void run()
 {
     shader.use();
     // Update the window
-    Rectangle rect1(0, 0, 0.2, 0.2);
+    Rectangle rect1(-1, 1, 2, -2);
     rect1.draw();
 
     // Rectangle rect2(0.5, 0.5, 0.2, 0.2);
     // rect.draw();
 
-    Circle circle(0.5, 0.5, 0, 0.5f, sides);
-    circle.draw();
+    // Circle circle(0, 0, 0, 0.5f, sides);
+    // circle.draw();
 }
 
 int main()
@@ -37,7 +44,7 @@ int main()
     // Create a window
     Window mainWindow(800, 800, "Main Window");
     mainWindow.setCharacterCallback(characterCallback);
-    mainWindow.setmouseButtonPressCallback(mouseButtonPressCallback);
+    mainWindow.setcursorPosCallback(cursorPosCallback);
 
     shader.initialize(
         "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/vertex.glsl",
@@ -48,7 +55,9 @@ int main()
     while (!mainWindow.shouldClose())
     {
         time = glfwGetTime();
-        std::cout << time << std::endl;
+        GLint timeLocation = glGetUniformLocation(shader.shaderProgram, "time");
+        glUniform1f(timeLocation,time );
+        // std::cout << time << std::endl;
         // Update the window
         mainWindow.update(run);
     }
