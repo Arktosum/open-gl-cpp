@@ -92,6 +92,7 @@ public:
     unsigned int numberOfVertices;
     Rectangle(float x, float y, float width, float height)
     {
+        // x,y is bottom left vertex.
         Point3D bl = {x, y, 0.0f};
         Point3D br = {x + width, y, 0.0f};
         Point3D tl = {x, y + height, 0.0f};
