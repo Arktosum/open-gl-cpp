@@ -1,9 +1,12 @@
 #include "./glad/glad.h"
 #include <math.h>
 #include <vector>
+#include "shader.hpp"
+
 class Object3D
 {
 public:
+    Shader shader;
     unsigned int VBO, VAO;
     void init(void *vertices, unsigned int size)
     {
@@ -43,6 +46,9 @@ public:
             GL_TRIANGLE_FAN    -  Renders a series of triangles sharing a common vertex (fan-like arrangement). First vertex is the center, the rest are taken as triangles.
             GL_QUAD_STRIP      -  Renders a strip of connected quadrilaterals. Each pair of vertices after the first two defines a new quad.
         */
+    }
+    draw(){
+        shader.use();
     }
 };
 struct Point3D
@@ -111,3 +117,5 @@ public:
         glBindVertexArray(0);
     }
 };
+
+

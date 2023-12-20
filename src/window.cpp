@@ -84,11 +84,14 @@ void Window::update(void (*callback)())
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+
     // Use the shader program
     callback();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
+
+
 
 // return-type (*function-name)(param-1, param-2)
