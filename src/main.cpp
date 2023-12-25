@@ -1,5 +1,4 @@
 #include "window.hpp"
-#include "shader.hpp"
 #include "objects.hpp"
 
 #define WINDOW_WIDTH 800
@@ -26,22 +25,15 @@ void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
     glUniform2f(mousePosLocation, static_cast<float>(normalizedX), static_cast<float>(normalizedY));
 }
 
-
-
 void run()
 {
-    shader.use();
-    // Update the window
-    // Rectangle rect1(-1, -1, 2, 2);
-    // rect1.draw();
+    OBJECT3D triangle;
 
-    // glBindVertexArray(primes.VAO);
-    // glDrawArrays(GL_POINTS, 0, numberofVertices);
-    // glBindVertexArray(0);
+    shader.use();
+    triangle.draw();
+
 }
 
-
-   
 int main()
 {
     // Create a window
@@ -50,8 +42,7 @@ int main()
     mainWindow.setcursorPosCallback(cursorPosCallback);
     shader.initialize(
         "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/vertex.glsl",
-        "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/fragment.glsl"
-    );
+        "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/fragment.glsl");
 
     double time = 0.0;
     while (!mainWindow.shouldClose())
@@ -63,6 +54,6 @@ int main()
         // Update the window
         mainWindow.update(run);
     }
-   
+
     return 0;
 }

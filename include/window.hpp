@@ -5,7 +5,6 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-
 class Window
 {
 public:
@@ -25,6 +24,7 @@ public:
     void setkeyboardCallback(void (*keyboardCallback)(GLFWwindow *window, int key, int scancode, int action, int mods));
     void setcursorPosCallback(void (*cursorPosCallback)(GLFWwindow *window, double xPos, double yPos));
     void setmouseButtonPressCallback(void (*mouseButtonPress)(GLFWwindow *window, int button, int action, int mod));
+
 private:
     GLFWwindow *window;
     int width, height;

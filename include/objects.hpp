@@ -3,119 +3,95 @@
 #include <vector>
 #include "shader.hpp"
 
-class Object3D
-{
-public:
-    Shader shader;
-    unsigned int VBO, VAO;
-    void init(void *vertices, unsigned int size)
-    {
 
-        // Set up a Vertex Buffer Object (VBO) and Vertex Array Object (VAO)
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
 
-        glBindVertexArray(VAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
-
-        // Specify the layout of the vertex data
+class VAO{
+    public:
+    unsigned int vao;
+    VAO(){
+        glGenVertexArrays(1, &vao);
+    }
+    void bindVAO(){glBindVertexArray(vao);}
+    void linkAttributes(){
+        // Set vertex attribute pointers
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-        /*
-            0 - starting index
-            3 - 3 Dimensions
-            GL_FLOAT - data type
-            GL_FALSE - normalized or not, putting true will convert to NDC
-            dimension spacing - dimension * datatype apart in the array. [(0,0,0),(0,0,1)]
-        */
         glEnableVertexAttribArray(0);
-
-        // Unbind VAO and VBO
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-        // glDrawArrays(mode, first, count);
-        /*
-            GL_POINTS          -  Renderds points every vertex
-            GL_LINES           -  Renderds line every two adjacent vertex
-            GL_LINE_STRIP      -  Renderds line segements between adjacent
-            GL_LINE_LOOP       -  Renderds line segements and finishes with a line from end to start
-            GL_TRIANGLES       -  Renderds triangles. Every three vertices define a triangle.
-            GL_TRIANGLE_STRIP  -  Renderds series of connected triangles. Each vertex after the first three defines a new triangle.
-            GL_TRIANGLE_FAN    -  Renders a series of triangles sharing a common vertex (fan-like arrangement). First vertex is the center, the rest are taken as triangles.
-            GL_QUAD_STRIP      -  Renders a strip of connected quadrilaterals. Each pair of vertices after the first two defines a new quad.
-        */
     }
-    draw(){
-        shader.use();
-    }
-};
-struct Point3D
-{
-    float x, y, z;
-    Point3D(float x, float y, float z) : x(x), y(y), z(z) {}
-};
-
-class Circle : public Object3D
-{
-public:
-    unsigned int numberOfVertices;
-
-    double deg_to_rad(double degrees)
-    {
-        return (degrees * 3.1415) / 180;
-    }
-    Circle(float centerX, float centerY, float centerZ, float radius, unsigned int numberOfSides = 20)
-    {
-
-        std::vector<Point3D> vertices;
-        vertices.emplace_back(centerX, centerY, centerZ);
-        for (int i = 0; i <= numberOfSides; ++i)
-        {
-            float angle = 2.0f * 3.14159f * static_cast<float>(i) / static_cast<float>(numberOfSides);
-            float x = centerX + radius * std::cos(angle);
-            float y = centerY + radius * std::sin(angle);
-            vertices.emplace_back(x, y, 0);
-        }
-
-        numberOfVertices = vertices.size();
-        GLsizeiptr size = vertices.size() * sizeof(Point3D);
-
-        Object3D::init(vertices.data(), size);
-    }
-    void draw()
-    {
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, numberOfVertices);
-        glBindVertexArray(0);
+    void deleteVAO(){
+        glDeleteVertexArrays(1, &vao);
     }
 };
 
-class Rectangle : public Object3D
+class VBO{
+    public:
+    unsigned int vbo,ebo;
+    void linkVBO(float* vertices,size_t vertexSize,unsigned int *indices,size_t indexSize){
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
+        
+        // Copy vertex data to VBO
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertexSize, vertices, GL_STATIC_DRAW);
+
+        // Copy index data to EBO
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize, indices, GL_STATIC_DRAW);
+    }
+    void deleteVBO(){
+        glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &ebo);
+    }
+};
+
+
+class OBJECT3D
 {
 public:
-    unsigned int numberOfVertices;
-    Rectangle(float x, float y, float width, float height)
+    VAO vao;
+    VBO vbo;
+    OBJECT3D()
     {
-        // x,y is bottom left vertex.
-        Point3D bl = {x, y, 0.0f};
-        Point3D br = {x + width, y, 0.0f};
-        Point3D tl = {x, y + height, 0.0f};
-        Point3D tr = {x + width, y + height, 0.0f};
+        // Vertex data
+        float vertices[] = {
+            -0.5f, -0.5f, 0.0f, // Bottom-left
+            0.5f, -0.5f, 0.0f,  // Bottom-right
+            0.5f, 0.5f, 0.0f,   // Top-right
+            -0.5f, 0.5f, 0.0f   // Top-left
+        };
 
-        std::vector<Point3D> vertices = {bl, br, tr, tr, tl, bl};
-        numberOfVertices = vertices.size();
-        GLsizeiptr size = vertices.size() * sizeof(Point3D);
+        // Index data
+        unsigned int indices[] = {
+            0, 1, 2, // First triangle
+            2, 3, 0  // Second triangle
+        };
 
-        Object3D::init(vertices.data(), size);
+        // Create and bind a Vertex Array Object (VAO)
+        vao.bindVAO();
+        vbo.linkVBO(vertices,sizeof(vertices),indices,sizeof(indices));
+        vao.linkAttributes();
     }
+
     void draw()
     {
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
+        // Draw the rectangle
+        glBindVertexArray(vao.vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+    }
+
+    ~OBJECT3D()
+    {
+        vao.deleteVAO();
+        vbo.deleteVBO();
+
     }
 };
 
 
+class Rectangle : OBJECT3D{
+    public:
+
+    Rectangle(){
+
+    }
+};
