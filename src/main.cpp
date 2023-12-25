@@ -25,13 +25,14 @@ void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
     glUniform2f(mousePosLocation, static_cast<float>(normalizedX), static_cast<float>(normalizedY));
 }
 
+// GLuint uniformID = glGetUniformLocation(shader.shaderProgram,"name");
+// glUniform2f(uniformID, x,y);
+// glUniform1f(uniformID,x);
 void run()
 {
-    OBJECT3D triangle;
-
+    Rectangle rect1(-0.5, 0.5, 1, 1);
     shader.use();
-    triangle.draw();
-
+    rect1.draw();
 }
 
 int main()
