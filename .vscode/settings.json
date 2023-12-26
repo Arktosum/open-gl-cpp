@@ -49,7 +49,16 @@
         "vector": "cpp",
         "iomanip": "cpp",
         "xlocmon": "cpp",
-        "xloctime": "cpp"
+        "xloctime": "cpp",
+        "algorithm": "cpp",
+        "cstdarg": "cpp",
+        "functional": "cpp",
+        "list": "cpp",
+        "locale": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

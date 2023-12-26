@@ -40,6 +40,9 @@ Window::Window(int width, int height, const char *title) : width(width), height(
 
     glViewport(0, 0, width, height);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glEnable(GL_DEPTH_TEST); // Used for depth testing! important in 3D
+    
 }
 
 void Window::setCharacterCallback(void (*characterCallback)(GLFWwindow *window, unsigned int keyCode))
@@ -85,7 +88,7 @@ void Window::update(void (*callback)())
 {
     // Clear the color buffer to black
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Use the shader program
     callback();

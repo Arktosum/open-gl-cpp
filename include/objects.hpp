@@ -106,15 +106,15 @@ public:
 class Rectangle : OBJECT3D
 {
 public:
-    Rectangle(float x, float y, float width, float height) // To normalize
+    Rectangle(float x, float y ,float width, float height) // To normalize
     {
         
         // Vertex data
         float vertices[] = {
-            x,y,0,                     0,1,          
-            x+width,y,0,               1,1,
-            x+width,y-height,0,        1,0,
-            x,y-height,0,              0,0,
+            x,y,0,                     1,0,          
+            x+width,y,0,               0,0,
+            x+width,y+height,0,        0,1,
+            x,y+height,0,              1,1
         };
 
         // Index data
@@ -141,47 +141,68 @@ public:
     }
 };
 
+
 class CUBE : OBJECT3D
 {
 public:
-    unsigned int indexCount;
-    CUBE(float x=0, float y=0,float z=0,float length = 1, float width=1,float height=1) // To normalize
+    unsigned int vertexCount;
+    CUBE() // To normalize
     {
-        float s = 1;
         // Vertex data
         float vertices[] = {
-            -0.5f, -0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
-             0.5f, -0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
-             0.5f, -0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
-        };
+    // Front face
+        -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, 0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, 0.5f,  0.0f, 1.0f,
+
+        // Back face
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+
+        // Right face
+        0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+
+        // Left face
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+
+        // Top face
+        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+
+        // Bottom face
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f
+    };
 
         // Index data
         unsigned int indices[] = {
-            0, 1, 2,
-            0, 2, 3,
-            4, 7, 6,
-            4, 6, 5,
-            0, 4, 5,
-            0, 5, 1,
-            1, 5, 6,
-            1, 6, 2,
-            2, 6, 7,
-            2, 7, 3,
-            4, 0, 3,
-            4, 3, 7,
+         0, 1, 2, 2, 3, 0, // Front face
+        4, 5, 6, 6, 7, 4, // Back face
+        8, 9, 10, 10, 11, 8, // Right face
+        12, 13, 14, 14, 15, 12, // Left face
+        16, 17, 18, 18, 19, 16, // Top face
+        20, 21, 22, 22, 23, 20  // Bottom face
         };
-        indexCount = sizeof(indices)/sizeof(unsigned int);
+        vertexCount = sizeof(indices)/sizeof(unsigned int);
         // Create and bind a Vertex Array Object (VAO)
         vao.bind();
         vbo.link(vertices, sizeof(vertices), indices, sizeof(indices));
-        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 8 * sizeof(float), (void *)0);
-        vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 8 * sizeof(float), (void *)(3*sizeof(float)));
-        vao.linkAttributes(vbo, 2, 3, GL_FLOAT, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 5 * sizeof(float), (void *)0);
+        vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 5 * sizeof(float), (void *)(3*sizeof(float)));
+        // vao.linkAttributes(vbo, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *)(3 * sizeof(float)));
 
         vao.unbind();
     }
@@ -189,11 +210,47 @@ public:
     void draw(){
         // Draw the rectangle
         vao.bind();
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
     }
 };
 
+
+
+class Line : OBJECT3D
+{
+public:
+    Line(float x1, float y1, float z1,float x2,float y2,float z2) // To normalize
+    {
+        
+        // Vertex data
+        float vertices[] = {
+            x1,y1,z1,
+            x2,y2,z2
+        };
+
+        // Index data
+        unsigned int indices[] = {
+            0, 1
+        };
+
+        // Create and bind a Vertex Array Object (VAO)
+        vao.bind();
+        vbo.link(vertices, sizeof(vertices), indices, sizeof(indices));
+        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 3 * sizeof(float), (void *)0);
+        // vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 5 * sizeof(float), (void *)(3*sizeof(float)));
+        // vao.linkAttributes(vbo, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+
+        vao.unbind();
+    }
+
+    void draw(){
+        // Draw the rectangle
+        vao.bind();
+        glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+};
 
 
 class Circle : OBJECT3D

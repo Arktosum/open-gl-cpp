@@ -1,26 +1,28 @@
 #include "window.hpp"
 #include "objects.hpp"
-#include "linalg.hpp"
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 800
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
+#define WINDOW_WIDTH 800.0f
+#define WINDOW_HEIGHT 800.0f
 Shader shader;
 
-float cameraX, cameraY, cameraZ;
-
+float cameraX, cameraY;
+float cameraZ = -3.0f;
 void characterCallback(GLFWwindow *window, unsigned int keyCode)
 {
     if (keyCode == GLFW_KEY_A)
-        cameraX += 1;
+        cameraX += 0.1;
     if (keyCode == GLFW_KEY_D)
-        cameraX -= 1;
+        cameraX -= 0.1;
     if (keyCode == GLFW_KEY_W)
-        cameraY += 1;
+        cameraY -= 0.1;
     if (keyCode == GLFW_KEY_S)
-        cameraY -= 1;
+        cameraY += 0.1;
     if (keyCode == GLFW_KEY_Z)
-        cameraZ += 1;
+        cameraZ += 0.1;
     if (keyCode == GLFW_KEY_X)
-        cameraZ -= 1;
+        cameraZ -= 0.1;
 }
 
 void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
@@ -42,44 +44,37 @@ Window mainWindow(800, 800, "Main Window");
 
 Texture texture;
 
-double degree = 0;
+float degrees = 0.0f;
 void run()
 {
     shader.use();
     texture.bind();
-    // Rectangle rect1(-0.5, 0.5, 1, 1);
-    // rect1.draw();
+    // Rectangle rect1(0.0f,0.0f,0.0f,0.5f,0.5f);
     CUBE cube;
     cube.draw();
-    Matrix4x4 model,view,projection;
+    Line x_axis(0.0f,0.0f,0.0f, 1.0f,0.0f,0.0f);
+    Line y_axis(0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
+    Line z_axis(0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
+    // glm::mat4 proj = glm::ortho(0.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f, -1.0f, 1.0f); // ORTHOGONAL
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)(WINDOW_WIDTH / WINDOW_HEIGHT), 0.1f, 100.0f);
 
-    projection = Matrix4x4::orthogonalProjection();
-    model = Matrix4x4::rotateX(cameraX) * model;
-    model = Matrix4x4::rotateY(cameraY) * model;
-    model = Matrix4x4::rotateZ(degree) * model;
+    // Left , right , bottom , top , znear,zfar // MAKE SURE EVERYTHING IS A FLOAT!
+    glm::vec3 cameraPos = glm::vec3(cameraX, cameraY, cameraZ);  
+    // std::cout<<"Camera position : "<<cameraPos.x<<" "<<cameraPos.y<<" "<<cameraPos.z<<std::endl;
+    glm::mat4 view = glm::translate(glm::mat4(1.0f),cameraPos);
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-
-    view = Matrix4x4::translate(0,0.0,-0.1f) * view;
-    Matrix vec(4,1);
-    vec.data[0][0] = -0.5f;
-    vec.data[1][0] = -0.5f;
-    vec.data[2][0] = -0.5f;
-    vec.data[3][0] = 1.0f;
-
-    degree += 0.01;
-    if (degree >= 360)
-        degree = 0;
-    Matrix out = projection * view * model * vec;
-
-    out.print();
-    GLint modelLoc = glGetUniformLocation(shader.shaderProgram, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.toFloatArray());
-
-    GLint viewLoc = glGetUniformLocation(shader.shaderProgram, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.toFloatArray());
-
-    GLint projectionLoc = glGetUniformLocation(shader.shaderProgram, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.toFloatArray());
+    model = glm::rotate(model, glm::radians(degrees), glm::vec3(0.0f, 1.0f, 0.0f));
+    degrees += 0.01;
+    if(degrees >= 360.0f) degrees = 0.0f;
+    glm::mat4 MVP = proj * view * model;
+    GLint MVP_location = glGetUniformLocation(shader.shaderProgram, "MVP");
+    glUniformMatrix4fv(MVP_location, 1, GL_FALSE, &MVP[0][0]);
+    // GL_FALSE -> if Column major no problem.
+    // GL_TRUE -> to convert Row major to column major.
+    x_axis.draw();
+    y_axis.draw();
+    z_axis.draw();
 
 }
 
