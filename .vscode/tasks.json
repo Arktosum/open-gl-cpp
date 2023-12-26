@@ -11,6 +11,7 @@
                 "-I${workspaceFolder}/include",
                 "-L${workspaceFolder}/lib",
                 "${workspaceFolder}/src/main.cpp",
+                "${workspaceFolder}/src/stb.cpp",
                 "${workspaceFolder}/src/shader.cpp",
                 "${workspaceFolder}/src/window.cpp",
                 "${workspaceFolder}/src/glad.c",

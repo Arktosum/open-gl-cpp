@@ -16,6 +16,7 @@ public:
 
     // Function to check if the window should close
     bool shouldClose() const;
+    void close() const;
 
     // Function to update the window (e.g., process input, swap buffers)
     void update(void (*callback)());

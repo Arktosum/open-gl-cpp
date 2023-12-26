@@ -73,7 +73,9 @@ Window::~Window()
     // Terminate GLFW
     glfwTerminate();
 }
-
+void Window::close() const{
+    glfwSetWindowShouldClose(window,true);
+}
 bool Window::shouldClose() const
 {
     return glfwWindowShouldClose(window);

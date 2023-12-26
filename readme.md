@@ -42,3 +42,28 @@ V0,V1,V3,V3,V1,V2
 v3 is sent twice to the VBO(Vertex Position).
 INSTEAD, we'll pass 4 vertices and tell open gl the order or index in a
 VBO ( Index Buffer )
+
+
+
+ // Local Coordinates
+ // Object is the center
+
+// Global Coordinates
+// World center is the center
+// Many objects are in the world.
+
+// View Cordinates
+// Camera is the center , no perspective
+
+// Clip coordinates
+// View coordinates counts for perspective
+// Everything beyond the clip is deleted.
+
+// Screen Coordinates.
+// Flattened coordinates so we can see in our 2D window.
+
+
+Local ->ModelMatrix -> World
+World -> ViewMatrix -> View
+View -> ProjectionMatrix -> Clip
+Clip -> Screen

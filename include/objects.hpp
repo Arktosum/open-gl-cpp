@@ -2,6 +2,36 @@
 #include <math.h>
 #include <vector>
 #include "shader.hpp"
+#include <stb/stb_image.h>
+
+
+class Texture{
+    public:
+    GLuint textureID;
+    int imgWidth,imgHeight,numColchannels; // STBI not allowing unsigned int??
+    void init(std::string texturePath){
+            // Texture
+        stbi_set_flip_vertically_on_load(true);
+        unsigned char* bytes = stbi_load(texturePath.c_str(),&imgWidth,&imgHeight,&numColchannels,0);
+        glGenTextures(1,&textureID);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D,textureID);
+
+        // What to happen if minimized or maximized.
+        // Nearest neighbor or Linear interpolation
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); 
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,imgWidth,imgHeight,0,GL_RGBA,GL_UNSIGNED_BYTE,bytes);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(bytes);
+        glBindTexture(GL_TEXTURE_2D,0);
+    }
+    void bind(){
+        glBindTexture(GL_TEXTURE_2D,textureID);
+    }
+};
 
 class VBO
 {
@@ -44,7 +74,7 @@ public:
     }
     void bind() { glBindVertexArray(vao); }
     void unbind() { glBindVertexArray(0); }
-    void linkAttributes(VBO vbo, GLuint layout, GLuint dimensions, GLenum type, GLsizeiptr stride, void *offset)
+    void linkAttributes(VBO& vbo, GLuint layout, GLuint dimensions, GLenum type, GLsizeiptr stride, void *offset)
     {
         // Set vertex attribute pointers
         vbo.bind();
@@ -81,10 +111,10 @@ public:
         
         // Vertex data
         float vertices[] = {
-            x,y,0,            
-            x+width,y,0,      
-            x+width,y-height,0,
-            x,y-height,0,       
+            x,y,0,                     0,1,          
+            x+width,y,0,               1,1,
+            x+width,y-height,0,        1,0,
+            x,y-height,0,              0,0,
         };
 
         // Index data
@@ -96,7 +126,8 @@ public:
         // Create and bind a Vertex Array Object (VAO)
         vao.bind();
         vbo.link(vertices, sizeof(vertices), indices, sizeof(indices));
-        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 3 * sizeof(float), (void *)0);
+        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 5 * sizeof(float), (void *)0);
+        vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 5 * sizeof(float), (void *)(3*sizeof(float)));
         // vao.linkAttributes(vbo, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *)(3 * sizeof(float)));
 
         vao.unbind();
@@ -106,6 +137,59 @@ public:
         // Draw the rectangle
         vao.bind();
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+};
+
+class CUBE : OBJECT3D
+{
+public:
+    unsigned int indexCount;
+    CUBE(float x=0, float y=0,float z=0,float length = 1, float width=1,float height=1) // To normalize
+    {
+        float s = 1;
+        // Vertex data
+        float vertices[] = {
+            -0.5f, -0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
+             0.5f, -0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,0.0f,  1.0f,0.0f,0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
+             0.5f, -0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,0.0f,  0.0f,0.0f,1.0f,
+        };
+
+        // Index data
+        unsigned int indices[] = {
+            0, 1, 2,
+            0, 2, 3,
+            4, 7, 6,
+            4, 6, 5,
+            0, 4, 5,
+            0, 5, 1,
+            1, 5, 6,
+            1, 6, 2,
+            2, 6, 7,
+            2, 7, 3,
+            4, 0, 3,
+            4, 3, 7,
+        };
+        indexCount = sizeof(indices)/sizeof(unsigned int);
+        // Create and bind a Vertex Array Object (VAO)
+        vao.bind();
+        vbo.link(vertices, sizeof(vertices), indices, sizeof(indices));
+        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 8 * sizeof(float), (void *)0);
+        vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 8 * sizeof(float), (void *)(3*sizeof(float)));
+        vao.linkAttributes(vbo, 2, 3, GL_FLOAT, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+
+        vao.unbind();
+    }
+
+    void draw(){
+        // Draw the rectangle
+        vao.bind();
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
     }
 };
