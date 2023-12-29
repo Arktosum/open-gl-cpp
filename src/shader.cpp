@@ -20,18 +20,21 @@ std::string readFile(const std::string &filename)
     myFile.close();
     return file_data;
 }
+void Shader::initializePath(const std::string vertexShaderFilepath, const std::string fragmentShaderFilepath){
+    std::string vertexSourceCode = readFile(vertexShaderFilepath);
+    std::string fragmentSourceCode = readFile(fragmentShaderFilepath);
 
-void Shader::initialize(const std::string vertexShaderFilepath, const std::string fragmentShaderFilepath)
+    this->initialize(vertexSourceCode,fragmentSourceCode);
+}
+void Shader::initialize(const std::string vertexSourceCode,const std::string fragmentSourceCode)
 {
     // Set up the shader program (you need to implement shader loading separately)
     // Use a simple shader program with a vertex and fragment shader
     // Bind the shader program here
     // Load and compile vertex shader
-
-    std::string vertexSourceCode = readFile(vertexShaderFilepath);
-    std::string fragmentSourceCode = readFile(fragmentShaderFilepath);
     const char *vertexShaderSource = vertexSourceCode.c_str();
     const char *fragmentShaderSource = fragmentSourceCode.c_str();
+    
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);

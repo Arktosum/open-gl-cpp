@@ -7,6 +7,7 @@ class Shader
 {
 public:
     unsigned int shaderProgram;
-    void initialize(const std::string vertexShaderFilepath, const std::string fragmentShaderFilepath);
+    void initializePath(const std::string vertexShaderFilepath, const std::string fragmentShaderFilepath);
+    void initialize(const std::string vertexSourceCode,const std::string fragmentSourceCode);
     void use();
 };

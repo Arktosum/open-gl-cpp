@@ -31,7 +31,6 @@ x1,y1,x2,y2,x3,y3
 in this order, we store the data in a VBO and then store in a VAO
 and by using the ID we can render the triangle whenever we want!
 
-
 Open GL draws its triangles in CCW order.
 we can specify the order differently by using index buffers.
 like if we want to draw a rectangle, we need 6 vertices, we are reusing a vertex twice.
@@ -43,10 +42,8 @@ v3 is sent twice to the VBO(Vertex Position).
 INSTEAD, we'll pass 4 vertices and tell open gl the order or index in a
 VBO ( Index Buffer )
 
-
-
- // Local Coordinates
- // Object is the center
+// Local Coordinates
+// Object is the center
 
 // Global Coordinates
 // World center is the center
@@ -62,8 +59,18 @@ VBO ( Index Buffer )
 // Screen Coordinates.
 // Flattened coordinates so we can see in our 2D window.
 
-
 Local ->ModelMatrix -> World
 World -> ViewMatrix -> View
 View -> ProjectionMatrix -> Clip
 Clip -> Screen
+![Alt text](image-1.png)
+
+// Objects are modelled using Local coordinates and converted into NDC.
+
+Model matrix is used to convert objects into world space. Position it anywhere we like!
+the dimensions does not matter. if it's out of the camera, we will not see it. but it will be there.
+
+LOCAL - (NDC)
+MODEL - (OUR GLOBAL COORDINATE SYSTEM)
+CAMERA - (VIEW)
+PROJECTION - (NDC)

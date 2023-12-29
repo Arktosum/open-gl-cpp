@@ -8,6 +8,7 @@
 class Window
 {
 public:
+    int width, height;
     // Constructor
     Window(int width, int height, const char *title);
 
@@ -28,7 +29,6 @@ public:
 
 private:
     GLFWwindow *window;
-    int width, height;
     const char *title;
 };
 
