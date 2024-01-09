@@ -1,7 +1,7 @@
 #include "window.hpp"
 #include <iostream>
 
- void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
@@ -42,7 +42,6 @@ Window::Window(int width, int height, const char *title) : width(width), height(
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glEnable(GL_DEPTH_TEST); // Used for depth testing! important in 3D
-    
 }
 
 void Window::setCharacterCallback(void (*characterCallback)(GLFWwindow *window, unsigned int keyCode))
@@ -76,8 +75,9 @@ Window::~Window()
     // Terminate GLFW
     glfwTerminate();
 }
-void Window::close() const{
-    glfwSetWindowShouldClose(window,true);
+void Window::close() const
+{
+    glfwSetWindowShouldClose(window, true);
 }
 bool Window::shouldClose() const
 {
@@ -87,6 +87,9 @@ bool Window::shouldClose() const
 void Window::update(void (*callback)())
 {
     // Clear the color buffer to black
+    double currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

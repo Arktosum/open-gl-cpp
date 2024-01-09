@@ -96,32 +96,32 @@ class Object
 public:
     VAO vao;
     VBO vbo;
-    std::vector<Shader> shaders;
-    std::vector<Texture> textures;
+    std::vector<Shader *> shaders;
+    std::vector<Texture *> textures;
     Object() {}
     void draw()
     {
-        for (Shader shader : shaders)
+        for (Shader *shader : shaders)
         {
-            shader.use();
+            shader->use();
         }
-        for (Texture texture : textures)
+        for (Texture *texture : textures)
         {
-            texture.bind();
+            texture->bind();
         }
     }
     void addShader(const std::string vertexShaderFilepath, const std::string fragmentShaderFilepath)
     {
-        Shader shader;
-        shader.initializePath(vertexShaderFilepath,fragmentShaderFilepath);
+        Shader *shader = new Shader();
+        shader->initializePath(vertexShaderFilepath, fragmentShaderFilepath);
         shaders.push_back(shader);
     }
-    void addTexture(const std::string texturePath,unsigned int shaderProgramIndex)
+    void addTexture(const std::string texturePath, unsigned int shaderProgramIndex)
     {
-        Texture texture;
-        texture.init(texturePath);
-                
-        GLuint text0uni = glGetUniformLocation(shaders[shaderProgramIndex].shaderProgram, "tex0");
+        Texture *texture = new Texture();
+        texture->init(texturePath);
+
+        GLuint text0uni = glGetUniformLocation(shaders[shaderProgramIndex]->shaderProgram, "tex0");
         glUniform1i(text0uni, 0);
 
         textures.push_back(texture);
@@ -142,7 +142,7 @@ struct vec3
 class Rectangle : Object
 {
 public:
-    Rectangle(float x, float y, float width, float height):Object() // To normalize
+    Rectangle(float x, float y, float width, float height) : Object() // To normalize
     {
 
         // Vertex data
@@ -178,76 +178,53 @@ public:
     }
 };
 
-class Cube : Object
+class Cube : public Object
 {
 public:
     unsigned int vertexCount;
-    Cube():Object() // To normalize
+    Cube() : Object() // To normalize
     {
         // Vertex data
         float vertices[] = {
-            // Front face
-            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,  // front-top-left 
+            1.0f, 1.0f, 1.0f,   // front-top-right
+            -1.0f, -1.0f, 1.0f, // front-bottom-left
+            1.0f, -1.0f, 1.0f,  // front-bottom-right
 
-            // Back face
-            -0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-
-            // Right face
-            0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-
-            // Left face
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-
-            // Top face
-            -0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-
-            // Bottom face
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-            0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f, 0.0f, 1.0f};
-
+            -1.0f, 1.0f, -1.0f,  // back-top-left 
+            1.0f, 1.0f, -1.0f,   // back-top-right
+            -1.0f, -1.0f, -1.0f, // back-bottom-left
+            1.0f, -1.0f, -1.0f,  // back-bottom-right
+        };
+        
         // Index data
         unsigned int indices[] = {
-            0, 1, 2, 2, 3, 0,       // Front face
-            4, 5, 6, 6, 7, 4,       // Back face
-            8, 9, 10, 10, 11, 8,    // Right face
-            12, 13, 14, 14, 15, 12, // Left face
-            16, 17, 18, 18, 19, 16, // Top face
-            20, 21, 22, 22, 23, 20  // Bottom face
+            1, 0, 2,1,2,3,  // Front face
+            5, 4, 6,5, 6,7, // Back face
+            0,4,6,0,6,2,// left face
+            5,1,3,5,3,7, // right face
+            5,4,0,5,0,1, // top face
+            3,2,6,3,6,7, // bottom face
         };
         vertexCount = sizeof(indices) / sizeof(unsigned int);
         // Create and bind a Vertex Array Object (VAO)
         vao.bind();
         vbo.link(vertices, sizeof(vertices), indices, sizeof(indices));
-        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 5 * sizeof(float), (void *)0);
-        vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+        vao.linkAttributes(vbo, 0, 3, GL_FLOAT, 3 * sizeof(float), (void *)0);
+        // vao.linkAttributes(vbo, 1, 2, GL_FLOAT, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         // vao.linkAttributes(vbo, 1, 3, GL_FLOAT, 6 * sizeof(float), (void *)(3 * sizeof(float)));
 
         vao.unbind();
     }
 
-    void draw()
+    void
+    draw()
     {
         Object::draw();
         // Draw the rectangle
         vao.bind();
-        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
+        // glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
+        glDrawElementsInstanced(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0,1000);
         glBindVertexArray(0);
     }
 };
@@ -255,7 +232,7 @@ public:
 class Line : Object
 {
 public:
-    Line(float x1, float y1, float z1, float x2, float y2, float z2):Object() // To normalize
+    Line(float x1, float y1, float z1, float x2, float y2, float z2) : Object() // To normalize
     {
 
         // Vertex data
@@ -291,7 +268,7 @@ class Circle : Object
 {
 public:
     unsigned int sides;
-    Circle(float centerX, float centerY, float radius, unsigned int segments) :Object()// To normalize
+    Circle(float centerX, float centerY, float radius, unsigned int segments) : Object() // To normalize
     {
         // Vertex data
         sides = segments;

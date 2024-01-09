@@ -2,71 +2,68 @@
 #include "objects.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-
-Window mainWindow(1920, 1080, "Main Window");
-Cube* cube;
-
-float cameraX = 0.0f, cameraY = 0.0f, cameraZ = -3.0f;
-float cameraDegree = 0.0f;
-
-enum CAMERA_AXIS
+Window mainWindow(1000, 1000, "Main Window");
+class Camera
 {
-    CAMERA_X,
-    CAMERA_Y,
-    CAMERA_Z
+public:
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::mat4 proj;
+    glm::mat4 view;
+    glm::vec3 front;
+    glm::vec3 up;
+    glm::vec3 direction;
+    float fov = 45.0f;
+    Camera()
+    {
+        position = glm::vec3(0.0f, 0.0f, 3.0f);
+        // glm::mat4 proj = glm::ortho(0.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f, -1.0f, 1.0f); // ORTHOGONAL
+        // Left , right , bottom , top , znear,zfar // MAKE SURE EVERYTHING IS A FLOAT!
+        front = glm::vec3(0.0f, 0.0f, -1.0f);
+        up = glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+    void update()
+    {
+        proj = glm::perspective(glm::radians(fov), (float)(mainWindow.width / mainWindow.height), 0.1f, 100.0f);
+        glm::vec3 target = position + front;
+        view = glm::lookAt(position, target, up);
+    }
 };
-CAMERA_AXIS cameraAxis = CAMERA_AXIS::CAMERA_X;
-
-float sensitivity = 1.0f;
+Camera *camera;
+bool wireFrameMode = false;
 void characterCallback(GLFWwindow *window, unsigned int keyCode)
 {
-    if (keyCode == GLFW_KEY_A)
-        cameraX += sensitivity;
-    if (keyCode == GLFW_KEY_D)
-        cameraX -= sensitivity;
-    if (keyCode == GLFW_KEY_W)
-        cameraY -= sensitivity;
-    if (keyCode == GLFW_KEY_S)
-        cameraY += sensitivity;
-    if (keyCode == GLFW_KEY_Z)
-        cameraZ += sensitivity;
-    if (keyCode == GLFW_KEY_X)
-        cameraZ -= sensitivity;
-    if (keyCode == GLFW_KEY_Q)
-        sensitivity += 0.1f;
-    if (keyCode == GLFW_KEY_E)
-        sensitivity -= 0.1f;
-    if (keyCode == GLFW_KEY_I)
-        cameraDegree += sensitivity;
-    if (keyCode == GLFW_KEY_J)
-        cameraDegree -= sensitivity;
-    if (keyCode == GLFW_KEY_L)
-    {
-        cameraAxis = CAMERA_AXIS::CAMERA_X;
-        std::cout << "Selected Axis : "
-                  << "X" << std::endl;
-        cameraDegree = 0.0f;
-    }
+    float cameraSpeed = 0.5f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera->position += cameraSpeed * camera->front;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera->position -= cameraSpeed * camera->front;
 
-    if (keyCode == GLFW_KEY_M)
-    {
-        cameraAxis = CAMERA_AXIS::CAMERA_Y;
-        std::cout << "Selected Axis : "
-                  << "Y" << std::endl;
-        cameraDegree = 0.0f;
-    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera->position += cameraSpeed * camera->up;
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+        camera->position -= cameraSpeed * camera->up;
 
-    if (keyCode == GLFW_KEY_N)
-    {
-        cameraAxis = CAMERA_AXIS::CAMERA_Z;
-        std::cout << "Selected Axis : "
-                  << "Z" << std::endl;
-        cameraDegree = 0.0f;
-    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera->position -= glm::normalize(glm::cross(camera->front, camera->up)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera->position += glm::normalize(glm::cross(camera->front, camera->up)) * cameraSpeed;
 
-    std::cout << "Sensitivity : " << sensitivity << std::endl;
+    if (glfwGetKey(window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
+    {
+        if (wireFrameMode)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        wireFrameMode = !wireFrameMode;
+    }
 }
 
+float lastX = mainWindow.width / 2, lastY = mainWindow.height / 2;
+double pitch = 0.0f;
+double yaw = -90.0f;
+double roll = 0.0f;
+bool firstMouse = true;
 void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
 {
     float normalizedX = static_cast<float>(xPos) / static_cast<float>(mainWindow.width);
@@ -74,57 +71,76 @@ void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
     normalizedX = 2 * normalizedX - 1.0f;
     normalizedY = 1.0f - (2.0 * normalizedY);
 
-    // std::cout << normalizedX << " " << normalizedY << std::endl;
-    GLint mousePosLocation = glGetUniformLocation(cube->shaders[0].shaderProgram, "mousePos");
-    glUniform2f(mousePosLocation, static_cast<float>(normalizedX), static_cast<float>(normalizedY));
+    if (firstMouse)
+    {
+        lastX = xPos;
+        lastY = yPos;
+        firstMouse = false;
+    }
+    float xoffset = xPos - lastX;
+    float yoffset = lastY - yPos;
+    lastX = xPos;
+    lastY = yPos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+    camera->direction = direction;
+    camera->front = glm::normalize(direction);
 }
 
 // GLuint uniformID = glGetUniformLocation(shader.shaderProgram,"name");
 // glUniform2f(uniformID, x,y);
 // glUniform1f(uniformID,x);
 
-float degrees = 0.0f;
+class Block
+{
+public:
+    Cube *cube;
+    glm::vec3 position;
 
+    Block(glm::vec3 position) : position(position) {}
+    void draw()
+    {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
+        glm::mat4 MVP = camera->proj * camera->view * model;
+        GLint MVP_location = glGetUniformLocation(cube->shaders[0]->shaderProgram, "MVP");
+        glUniformMatrix4fv(MVP_location, 1, GL_FALSE, &MVP[0][0]);
+        cube->draw();
+    }
+};
+
+Block* block;
 void run()
 {
 
-    // Rectangle rect1(0.0f,0.0f,0.0f,0.5f,0.5f);
-
-    Line x_axis(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    Line y_axis(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-    Line z_axis(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-
-    // glm::mat4 proj = glm::ortho(0.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f, -1.0f, 1.0f); // ORTHOGONAL
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)(mainWindow.width / mainWindow.height), 0.1f, 100.0f);
-    // Left , right , bottom , top , znear,zfar // MAKE SURE EVERYTHING IS A FLOAT!
-    glm::vec3 cameraPos = glm::vec3(cameraX, cameraY, cameraZ);
-    float cameraRotX = (float)(cameraAxis == CAMERA_X);
-    float cameraRotY = (float)(cameraAxis == CAMERA_Y);
-    float cameraRotZ = (float)(cameraAxis == CAMERA_Z);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), cameraPos) * glm::rotate(glm::mat4(1.0f), glm::radians(cameraDegree), glm::vec3(cameraRotX, cameraRotY, cameraRotZ));
-
-    for (int i = 0; i < 16; i++)
-    {
-        for (int j = 0; j < 256; j++)
-        {
-            for (int k = 0; k < 16; k++)
-            {
-                if (!((j == 0) || (j == 255)))
-                    continue;
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f * i, 1.0f * j, 1.0f * k));
-                glm::mat4 MVP = proj * view * model;
-                GLint MVP_location = glGetUniformLocation(cube->shaders[0].shaderProgram, "MVP");
-                glUniformMatrix4fv(MVP_location, 1, GL_FALSE, &MVP[0][0]);
-                cube->draw();
-            }
-        }
-    }
-
+    block->draw();
+    // std::cout << camera->position.x << " " << camera->position.y << " " << camera->position.z << " " << std::endl;
     // GL_FALSE -> if Column major no problem.
     // GL_TRUE -> to convert Row major to column major.
-    x_axis.draw();
-    y_axis.draw();
-    z_axis.draw();
+    camera->update();
+}
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    camera->fov -= (float)yoffset;
+    if (camera->fov < 1.0f)
+        camera->fov = 1.0f;
+    if (camera->fov > 45.0f)
+        camera->fov = 45.0f;
 }
 
 int main()
@@ -132,22 +148,20 @@ int main()
     // Create a window
     mainWindow.setCharacterCallback(characterCallback);
     mainWindow.setcursorPosCallback(cursorPosCallback);
-    cube = new Cube();
-   
+    glfwSetInputMode(mainWindow.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetScrollCallback(mainWindow.window, scroll_callback);
+    Cube *cube = new Cube();
     cube->addShader(
         "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/vertex.glsl",
         "E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/src/shaders/fragment.glsl");
 
-    cube->addTexture("E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/assets/image.png",0);
+    cube->addTexture("E:/Programming/Github Repositories/Work In Progress/open-gl-cpp/assets/Rectangle 45.png", 0);
 
-    // glDeleteTextures(1,&texture);
-    double time = 0.0;
+    camera = new Camera();
+    block = new Block(glm::vec3(0.0f, 0.0f, 0.0f));
+    block->cube = cube;
     while (!mainWindow.shouldClose())
     {
-        time = glfwGetTime();
-        GLint timeLocation = glGetUniformLocation(cube->shaders[0].shaderProgram, "time");
-        glUniform1f(timeLocation, time);
-        // std::cout << time << std::endl;
         // Update the window
         mainWindow.update(run);
     }

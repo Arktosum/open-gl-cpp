@@ -8,7 +8,9 @@
 class Window
 {
 public:
+    GLFWwindow *window;
     int width, height;
+    double deltaTime;
     // Constructor
     Window(int width, int height, const char *title);
 
@@ -28,7 +30,7 @@ public:
     void setmouseButtonPressCallback(void (*mouseButtonPress)(GLFWwindow *window, int button, int action, int mod));
 
 private:
-    GLFWwindow *window;
+        double lastFrame;
     const char *title;
 };
 
